@@ -1,4 +1,4 @@
-package com.zoo.zoointegratedmanagementsystem;
+package com.zoo.zims;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

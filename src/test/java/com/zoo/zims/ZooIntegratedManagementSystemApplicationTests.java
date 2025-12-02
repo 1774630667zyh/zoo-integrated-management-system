@@ -1,4 +1,4 @@
-package com.zoo.zoointegratedmanagementsystem;
+package com.zoo.zims;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
