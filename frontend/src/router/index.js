@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 静态路由表
+// layout: 系统主布局 (Sidebar + Navbar)
+// hidden: true 表示不显示在侧边栏
 const routes = [
     {
         path: '/login',
@@ -33,7 +35,12 @@ const routes = [
                 component: () => import('@/views/animal/index.vue'),
                 meta: { title: '动物档案' }
             },
-            // 这里预留后续的医疗和物种页面
+            {
+                path: 'species',
+                name: 'SpeciesList',
+                component: () => import('@/views/species/index.vue'),
+                meta: { title: '物种字典' }
+            }
         ]
     },
     {
@@ -61,10 +68,10 @@ const router = createRouter({
     routes
 })
 
-// 路由守卫
+// 路由守卫：检查 Token 防止未登录访问
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('ZIMS-Token')
-    const whiteList = ['/login'] // 白名单
+    const whiteList = ['/login']
 
     if (token) {
         if (to.path === '/login') {

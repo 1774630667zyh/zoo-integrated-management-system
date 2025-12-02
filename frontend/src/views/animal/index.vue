@@ -23,20 +23,11 @@
       >
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="name" label="昵称" width="120" />
-        <el-table-column prop="chipCode" label="芯片代码" width="150" />
         <el-table-column prop="speciesId" label="物种" width="120">
           <template #default="{ row }">
             <el-tag>{{ getSpeciesName(row.speciesId) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="gender" label="性别" width="80" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.gender === 1" type="primary">雄</el-tag>
-            <el-tag v-else-if="row.gender === 0" type="danger">雌</el-tag>
-            <el-tag v-else type="info">未知</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="birthDate" label="出生日期" width="120" />
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.status === 1" type="success">在园</el-tag>
@@ -46,8 +37,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="updateTime" label="更新时间" width="180" />
-        <el-table-column label="操作" align="center" min-width="150">
+        <el-table-column label="操作" align="center" min-width="250">
           <template #default="{ row }">
+            <el-button type="primary" link icon="FirstAidKit" @click="handleMedical(row)">病历</el-button>
             <el-button type="primary" link icon="Edit" @click="handleEdit(row)">编辑</el-button>
             <el-button type="danger" link icon="Delete" @click="handleDelete(row)">删除</el-button>
           </template>
@@ -68,7 +60,7 @@
       </div>
     </el-card>
 
-    <!-- 新增/编辑 对话框 -->
+    <!-- 新增/编辑 动物对话框 -->
     <el-dialog
         :title="dialog.title"
         v-model="dialog.visible"
@@ -124,6 +116,59 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 医疗记录 抽屉 (Drawer) -->
+    <el-drawer
+        v-model="medicalDrawer.visible"
+        :title="medicalDrawer.title"
+        size="50%"
+        destroy-on-close
+    >
+      <div style="padding: 0 20px;">
+        <!-- 新增病历表单 -->
+        <el-card class="box-card" shadow="never" style="margin-bottom: 20px;">
+          <template #header>
+            <div class="card-header">
+              <span>录入新就诊记录</span>
+            </div>
+          </template>
+          <el-form :model="medicalForm" label-width="80px">
+            <el-form-item label="症状">
+              <el-input v-model="medicalForm.symptoms" placeholder="描述症状" />
+            </el-form-item>
+            <el-form-item label="诊断">
+              <el-input v-model="medicalForm.diagnosis" placeholder="诊断结果" />
+            </el-form-item>
+            <el-form-item label="治疗">
+              <el-input v-model="medicalForm.treatment" type="textarea" placeholder="治疗方案及用药" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="submitMedical">保存记录</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+
+        <!-- 历史记录时间轴 -->
+        <h3>历史诊疗记录</h3>
+        <el-timeline v-if="medicalHistory.length > 0">
+          <el-timeline-item
+              v-for="(record, index) in medicalHistory"
+              :key="index"
+              :timestamp="record.visitDate"
+              placement="top"
+              type="primary"
+          >
+            <el-card>
+              <h4>诊断: {{ record.diagnosis }}</h4>
+              <p><strong>症状:</strong> {{ record.symptoms }}</p>
+              <p><strong>治疗:</strong> {{ record.treatment }}</p>
+              <p style="color: #909399; font-size: 12px;">兽医ID: {{ record.vetId }}</p>
+            </el-card>
+          </el-timeline-item>
+        </el-timeline>
+        <el-empty v-else description="暂无医疗记录" />
+      </div>
+    </el-drawer>
   </div>
 </template>
 
@@ -131,24 +176,31 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getAnimalList, createAnimal, updateAnimal, deleteAnimal } from '@/api/animal'
 import { getAllSpecies } from '@/api/species'
+import { getMedicalHistory, createMedicalRecord } from '@/api/medical'
+import { useUserStore } from '@/store/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const total = ref(0)
 const animalList = ref([])
 const speciesOptions = ref([])
+const speciesMap = ref({})
 
+// 用户Store，用于获取当前兽医ID
+const userStore = useUserStore()
+
+// 查询参数
 const queryParams = reactive({
   page: 1,
   size: 10,
   name: ''
 })
 
+// 动物弹窗
 const dialog = reactive({
   visible: false,
   title: ''
 })
-
 const formRef = ref(null)
 const form = reactive({
   id: undefined,
@@ -159,26 +211,36 @@ const form = reactive({
   birthDate: '',
   status: 1
 })
-
 const rules = {
   name: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
   speciesId: [{ required: true, message: '请选择物种', trigger: 'change' }],
   chipCode: [{ required: true, message: '请输入芯片代码', trigger: 'blur' }]
 }
 
-// 获取物种字典 (为了将 ID 转为 名称显示)
-const speciesMap = ref({})
+// 医疗相关
+const medicalDrawer = reactive({
+  visible: false,
+  title: '',
+  animalId: null
+})
+const medicalHistory = ref([])
+const medicalForm = reactive({
+  symptoms: '',
+  diagnosis: '',
+  treatment: ''
+})
 
 onMounted(() => {
   loadSpecies()
   getList()
 })
 
+// --- 基础数据与列表逻辑 ---
+
 const loadSpecies = async () => {
   const res = await getAllSpecies()
   if (res) {
     speciesOptions.value = res
-    // 构建Map方便列表回显
     res.forEach(item => {
       speciesMap.value[item.id] = item.commonName
     })
@@ -202,6 +264,8 @@ const handleQuery = () => {
   queryParams.page = 1
   getList()
 }
+
+// --- 动物增删改逻辑 ---
 
 const resetForm = () => {
   form.id = undefined
@@ -258,21 +322,56 @@ const handleDelete = (row) => {
     })
   })
 }
+
+// --- 医疗记录逻辑 ---
+
+const handleMedical = (row) => {
+  medicalDrawer.animalId = row.id
+  medicalDrawer.title = `医疗记录 - ${row.name}`
+  medicalDrawer.visible = true
+
+  // 重置表单
+  medicalForm.symptoms = ''
+  medicalForm.diagnosis = ''
+  medicalForm.treatment = ''
+
+  loadMedicalHistory(row.id)
+}
+
+const loadMedicalHistory = (animalId) => {
+  getMedicalHistory(animalId).then(res => {
+    medicalHistory.value = res.records || []
+  })
+}
+
+const submitMedical = () => {
+  if (!medicalForm.diagnosis) {
+    ElMessage.warning('请填写诊断结果')
+    return
+  }
+
+  const data = {
+    animalId: medicalDrawer.animalId,
+    // 假设当前登录用户ID为兽医ID，实际应从Token解析
+    vetId: 1, // 这里暂时硬编码，或者从 userStore 获取
+    symptoms: medicalForm.symptoms,
+    diagnosis: medicalForm.diagnosis,
+    treatment: medicalForm.treatment
+  }
+
+  createMedicalRecord(data).then(() => {
+    ElMessage.success('病历保存成功')
+    // 刷新列表并清空表单
+    loadMedicalHistory(medicalDrawer.animalId)
+    medicalForm.symptoms = ''
+    medicalForm.diagnosis = ''
+    medicalForm.treatment = ''
+  })
+}
 </script>
 
 <style scoped>
-.app-container {
-  padding: 20px;
-}
-.filter-container {
-  margin-bottom: 20px;
-}
-.table-container {
-  min-height: 500px;
-}
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
+.app-container { padding: 20px; }
+.filter-container { margin-bottom: 20px; }
+.pagination-container { margin-top: 20px; display: flex; justify-content: flex-end; }
 </style>
