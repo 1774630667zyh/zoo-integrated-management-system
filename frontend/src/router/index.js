@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 静态路由表
-// layout: 系统主布局 (Sidebar + Navbar)
-// hidden: true 表示不显示在侧边栏
 const routes = [
     {
         path: '/login',
@@ -55,7 +53,6 @@ const routes = [
             }
         ]
     },
-    // 404 页面
     {
         path: '/:pathMatch(.*)*',
         redirect: '/dashboard',
@@ -68,7 +65,7 @@ const router = createRouter({
     routes
 })
 
-// 路由守卫：检查 Token 防止未登录访问
+// 路由守卫
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('ZIMS-Token')
     const whiteList = ['/login']
