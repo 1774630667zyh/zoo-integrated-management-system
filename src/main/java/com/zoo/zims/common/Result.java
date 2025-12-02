@@ -29,16 +29,19 @@ public class Result<T> {
         this.message = message;
     }
 
-    // 静态快捷方法
+    // 静态快捷方法 - 成功带数据
     public static <T> Result<T> success(T data) {
         return new Result<>(true, StatusCode.OK, "操作成功", data);
     }
 
+    // 静态快捷方法 - 成功无数据
     public static Result<Void> success() {
         return new Result<>(true, StatusCode.OK, "操作成功");
     }
 
-    public static Result<Void> error(String message) {
+    // 静态快捷方法 - 失败
+    // 修改点：添加 <T> 泛型声明，并返回 Result<T>，使其能适应所有 Controller 的返回类型
+    public static <T> Result<T> error(String message) {
         return new Result<>(false, StatusCode.ERROR, message);
     }
 }
