@@ -8,6 +8,27 @@ const routes = [
         component: () => import('@/views/login/index.vue'),
         hidden: true
     },
+    // --- 游客端路由 (新增) ---
+    {
+        path: '/visitor',
+        component: () => import('@/views/visitor/Layout.vue'),
+        redirect: '/visitor/home',
+        children: [
+            {
+                path: 'home',
+                name: 'VisitorHome',
+                component: () => import('@/views/visitor/Home.vue'),
+                meta: { title: '在线购票' }
+            },
+            {
+                path: 'my-orders',
+                name: 'VisitorOrders',
+                component: () => import('@/views/visitor/MyOrders.vue'),
+                meta: { title: '我的订单' }
+            }
+        ]
+    },
+    // --- 管理端路由 ---
     {
         path: '/',
         component: () => import('@/layout/index.vue'),
@@ -76,7 +97,7 @@ const routes = [
             }
         ]
     },
-    // 票务管理
+    // 票务管理 (后台)
     {
         path: '/ticket',
         component: () => import('@/layout/index.vue'),
@@ -89,7 +110,7 @@ const routes = [
             }
         ]
     },
-    // 系统管理 (新增)
+    // 系统管理
     {
         path: '/system',
         component: () => import('@/layout/index.vue'),
@@ -105,7 +126,7 @@ const routes = [
     },
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/dashboard',
+        redirect: '/login', // 默认跳登录
         hidden: true
     }
 ]
@@ -117,8 +138,14 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('ZIMS-Token')
-    const whiteList = ['/login']
 
+    // 游客端页面直接放行
+    if (to.path.startsWith('/visitor')) {
+        next()
+        return
+    }
+
+    const whiteList = ['/login']
     if (token) {
         if (to.path === '/login') {
             next({ path: '/' })

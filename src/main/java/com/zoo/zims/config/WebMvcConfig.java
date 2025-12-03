@@ -16,7 +16,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/api/**") // 拦截所有API
-                .excludePathPatterns("/api/login", "/api/tickets/order"); // 放行登录和游客购票接口
+                .excludePathPatterns(
+                        "/api/login",           // 放行管理员登录
+                        "/api/visitor/**"       // 放行所有游客端接口
+                );
     }
 
     // 全局跨域配置
