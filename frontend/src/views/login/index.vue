@@ -33,6 +33,7 @@
           />
         </el-form-item>
 
+        <!-- 员工登录按钮 -->
         <el-form-item>
           <el-button
               type="primary"
@@ -40,7 +41,14 @@
               class="login-button"
               @click="handleLogin"
           >
-            {{ loading ? '登录中...' : '登 录' }}
+            {{ loading ? '员工登录...' : '员 工 登 录' }}
+          </el-button>
+        </el-form-item>
+
+        <!-- [新增] 游客入口按钮 -->
+        <el-form-item>
+          <el-button class="login-button" @click="goToVisitor">
+            <el-icon style="margin-right: 5px"><Bicycle /></el-icon> 游客购票通道 (无需登录)
           </el-button>
         </el-form-item>
 
@@ -91,6 +99,11 @@ const handleLogin = () => {
       return false
     }
   })
+}
+
+// [新增] 跳转到游客端
+const goToVisitor = () => {
+  router.push('/visitor/home')
 }
 </script>
 

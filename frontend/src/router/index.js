@@ -8,11 +8,12 @@ const routes = [
         component: () => import('@/views/login/index.vue'),
         hidden: true
     },
-    // --- 游客端路由 (新增) ---
+    // --- 游客端路由 (更新) ---
     {
         path: '/visitor',
         component: () => import('@/views/visitor/Layout.vue'),
         redirect: '/visitor/home',
+        hidden: true, // 隐藏此路由，防止管理员侧边栏渲染时报错
         children: [
             {
                 path: 'home',
@@ -25,6 +26,13 @@ const routes = [
                 name: 'VisitorOrders',
                 component: () => import('@/views/visitor/MyOrders.vue'),
                 meta: { title: '我的订单' }
+            },
+            // [新增] 游客登录页
+            {
+                path: 'auth',
+                name: 'VisitorAuth',
+                component: () => import('@/views/visitor/Login.vue'),
+                meta: { title: '游客登录' }
             }
         ]
     },
