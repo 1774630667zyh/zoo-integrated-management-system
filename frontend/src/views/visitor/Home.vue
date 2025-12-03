@@ -17,7 +17,7 @@
           <div class="price">¥ {{ ticket.price }}</div>
           <p class="desc">{{ ticket.description }}</p>
           <div class="check-icon" v-if="selectedProduct.id === ticket.id">
-            <el-icon><Select /></el-icon>
+            <el-icon><Check /></el-icon>
           </div>
         </el-card>
       </el-col>
