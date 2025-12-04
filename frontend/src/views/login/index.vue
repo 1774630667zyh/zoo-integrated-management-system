@@ -45,9 +45,9 @@
           </el-button>
         </el-form-item>
 
-        <!-- [新增] 游客入口按钮 -->
+        <!-- [新增] 游客入口按钮 (绿色醒目样式) -->
         <el-form-item>
-          <el-button class="login-button" @click="goToVisitor">
+          <el-button type="success" plain class="login-button" @click="goToVisitor">
             <el-icon style="margin-right: 5px"><Bicycle /></el-icon> 游客购票通道 (无需登录)
           </el-button>
         </el-form-item>
@@ -101,7 +101,7 @@ const handleLogin = () => {
   })
 }
 
-// [新增] 跳转到游客端
+// 跳转到游客端
 const goToVisitor = () => {
   router.push('/visitor/home')
 }

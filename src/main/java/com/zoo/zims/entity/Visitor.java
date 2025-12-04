@@ -1,7 +1,7 @@
 package com.zoo.zims.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -16,7 +16,12 @@ public class Visitor implements Serializable {
 
     private String username;
 
-    @JsonIgnore // JSON序列化时忽略密码
+    /**
+     * [修复]
+     * 将 @JsonIgnore 改为 @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+     * 作用：允许前端传入密码进行注册/登录，但在返回用户信息时隐藏密码。
+     */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     private String nickname;

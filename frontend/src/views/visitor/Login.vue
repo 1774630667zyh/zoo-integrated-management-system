@@ -3,8 +3,8 @@
     <el-card class="auth-card">
       <template #header>
         <div class="tabs">
-          <span :class="{active: isLogin}" @click="isLogin = true">登录</span>
-          <span :class="{active: !isLogin}" @click="isLogin = false">注册</span>
+          <span :class="{active: isLogin}" @click="isLogin = true">游客登录</span>
+          <span :class="{active: !isLogin}" @click="isLogin = false">新用户注册</span>
         </div>
       </template>
 
@@ -12,9 +12,11 @@
         <el-form-item prop="username">
           <el-input v-model="form.username" placeholder="账号/手机号" prefix-icon="User" />
         </el-form-item>
+
         <el-form-item prop="password">
           <el-input v-model="form.password" type="password" placeholder="密码" prefix-icon="Lock" show-password />
         </el-form-item>
+
         <el-form-item v-if="!isLogin" prop="nickname">
           <el-input v-model="form.nickname" placeholder="您的昵称" prefix-icon="Postcard" />
         </el-form-item>
@@ -24,7 +26,7 @@
         </el-button>
 
         <div class="skip-login">
-          <el-button link @click="$router.push('/visitor/home')">暂不登录，直接逛逛</el-button>
+          <el-button link @click="$router.push('/visitor/home')">暂不登录，返回首页</el-button>
         </div>
       </el-form>
     </el-card>
@@ -47,8 +49,8 @@ const formRef = ref(null)
 const form = reactive({ username: '', password: '', nickname: '' })
 
 const rules = {
-  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  username: [{ required: true, message: '必填', trigger: 'blur' }],
+  password: [{ required: true, message: '必填', trigger: 'blur' }]
 }
 
 const handleSubmit = () => {
